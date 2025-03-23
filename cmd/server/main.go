@@ -48,9 +48,14 @@ func mTLSMiddleware(clientCAs *x509.CertPool, verifyPeerCertificate func(*x509.C
 	})
 }
 
-func ping(w http.ResponseWriter, _ *http.Request) {
+func privatePing(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("pong"))
+	w.Write([]byte("private pong"))
+}
+
+func publicPing(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("public pong"))
 }
 
 func main() {
@@ -65,7 +70,9 @@ func main() {
 	}
 
 	handler := http.NewServeMux()
-	handler.Handle("GET /ping", mTLSMiddleware(clientCaCertPool, nil, http.HandlerFunc(ping)))
+	handler.Handle("GET /private/ping", mTLSMiddleware(clientCaCertPool, nil, http.HandlerFunc(privatePing)))
+
+	handler.Handle("GET /public/ping", http.HandlerFunc(publicPing))
 
 	tlsCfg := &tls.Config{
 		ClientAuth: tls.RequestClientCert,
